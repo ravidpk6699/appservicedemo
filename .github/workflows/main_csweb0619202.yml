@@ -1,57 +1,39 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - csweb0619202
+name: Deploy ASP.NET CORE
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  
+env:
+  AZURE_WEBAPP_NAME: csweb0619202
+  AZURE_WEBAPP_PATH: '.'
+  DOTNET_VERSION: '3.1.419'
 
-jobs:
-  build:
-    runs-on: windows-latest
-
+Jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v1
+      - uses: actions/checkout
+
+      - name: Login via Azure CLI
+        uses: azure/login@v1
         with:
-          dotnet-version: '3.1.301'
-          include-prerelease: true
+          creds: ${{secrets.AZURE_CREDENTIALS}}
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
-
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
+      - name: SETUP .NET CORE
+        uses: action/setup-dotnet@v1
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-  deploy:
-    runs-on: windows-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      - name: dotnet build + publish
+        run: |
+          dotnet build --configuration release
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PATH }}/myapp'
 
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: .net-app
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
+      - name: Deploy to App Service 
         uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'csweb0619202'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_C1E9BDF143C74C57A1A663A13B386957 }}
-          package: .
+        with: 
+          app-name: ${{env.AZURE_WEBAPP_NAME }}
+          Package: '${{env.AZURE_WEBAPP_PATH }}/myapp'
