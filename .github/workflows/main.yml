@@ -8,7 +8,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: csweb0619202
   AZURE_WEBAPP_PATH: '.'
-  DOTNET_VERSION: '2.2.101'
+  DOTNET_VERSION: '3.1.419'
 
 jobs:
   build-and-deploy:
@@ -23,7 +23,7 @@ jobs:
           creds: ${{secrets.AZURE_CREDENTIALS}}
 
       - name: SETUP .NET CORE
-        uses: action/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
